@@ -1,0 +1,5 @@
+prepare
+add a new player
+Make soup
+Buy the paint
+We just made a default arg
