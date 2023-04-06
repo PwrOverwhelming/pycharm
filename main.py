@@ -1,71 +1,45 @@
 import functions
-import time
+import PySimpleGUI as sg
 
-now = time.strftime("%b %d, %Y %H:%M:%S")
-print("The time is below:")
-print(now)
+label = sg.Text("Type ina to-do ")
+input_box = sg.InputText(tooltip="Enter todo", key="todo")
+add_button = sg.Button("Add")
+list_box = sg.Listbox(values=functions.get_todos(), key='todos',
+                      enable_events=True, size=[45,10])
+edit_button = sg.Button("Edit")
+
+window = sg.Window("My To-Do App",
+                   layout=[[label],
+                           [input_box, add_button],
+                           [list_box, edit_button]
+                           ],
+                   font=('Helvetica', 17))
+
 while True:
-    user_action = input("Type add, show, edit, complete or exit: ")
-    user_action = user_action.strip()
+    event, values = window.read()
+    print(event)
+    print(values)
+    match event:
+        case "Add":
+            todos = functions.get_todos()
+            new_todo = values['todo'] + "\n"
+            todos.append(new_todo)
+            functions.write_todos(todos)
+            window['todos'].update(values=todos)
+        case "Edit":
+            todo_to_edit = values['todos'][0]
+            new_todo = values['todo']
 
-    if user_action.startswith('add'):
-        todo = user_action[4:]
-
-        todos = functions.get_todos()
-
-        todos.append(todo + "\n")
-
-        functions.write_todos(todos)
-
-    elif user_action.startswith('show'):
-        todos = functions.get_todos()
-
-        for index, item in enumerate(todos):
-            item=item.strip('\n')
-            row = f"{index + 1}-{item}"
-            print(row)
-
-    elif user_action.startswith('edit'):
-        try:
-            number = int(user_action[5:])
-            number = number - 1
 
             todos = functions.get_todos()
+            index = todos.index(todo_to_edit)
+            todos[index] = new_todo
+            functions.write_todos(todos)
+            window['todos'].update(values=todos)
+        case 'todos':
+            window['todo'].update(value=values['todos'][0])
 
-            new_todo = input("Enter a new todo: ")
-            todos[number] = new_todo + "\n"
+        case sg.WIN_CLOSED:
+            break
 
-            functions.write_todos("todos.txt", todos)
-
-        except ValueError:
-            print("Your command is not valid")
-            continue
-
-    elif user_action.startswith('complete'):
-        try:
-            number = int(user_action[9:])
-
-            todos = functions.get_todos()
-
-            index = number-1
-            todo_to_remove = todos[index].strip('\n')
-            todos.pop(index)
-
-            functions.write_todos("todos.txt", todos)
-
-            message = f"Todo {todo_to_remove} was removed from the list"
-            print(message)
-
-        except IndexError:
-            print("There is no item with that number")
-            continue
-
-    elif user_action.startswith('edit'):
-
-        break
-
-    else:
-        print("Command is not valid")
-
-print("Bye!")
-
+window.close()
